@@ -82,11 +82,13 @@
       color: #006400;
     }
     #mobile-controls {
-      display: flex !important;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 15px;
-    }
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  position: relative;
+  z-index: 10;
+}
     #mobile-controls button {
       font-size: 24px;
       margin: 4px;
@@ -213,6 +215,7 @@
     }
 
     function startGame() {
+  document.getElementById("mobile-controls").style.display = "flex";
       const difficulty = difficultySelect.value;
       const theme = themeSelect.value;
       applyTheme(theme);
@@ -221,6 +224,7 @@
       info.style.display = "block";
       levelIndicator.style.display = "block";
       canvas.style.display = "block";
+  document.getElementById("mobile-controls").style.display = "flex";
       resetGame(difficulty);
       clearInterval(game);
       game = setInterval(draw, speed);
