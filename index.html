@@ -40,7 +40,7 @@
       position: relative;
       z-index: 0;
       pointer-events: auto;
-      display: none; /* 시작 전 숨김 */
+      display: none;
     }
     #start-screen {
       position: fixed;
@@ -75,19 +75,21 @@
 <body>
   <div id="start-screen">
     <h1>🐍 귀염뱀 게임</h1>
-    <label>난이도 선택:</label>
-    <div>
-      <button class="btn" onclick="setDifficulty('easy')">Easy</button>
-      <button class="btn" onclick="setDifficulty('normal')">Normal</button>
-      <button class="btn" onclick="setDifficulty('hard')">Hard</button>
-    </div>
-    <label>테마 선택:</label>
-    <div>
-      <button class="btn" onclick="setTheme('classic')">Classic</button>
-      <button class="btn" onclick="setTheme('ocean')">Ocean</button>
-      <button class="btn" onclick="setTheme('desert')">Desert</button>
-      <button class="btn" onclick="setTheme('night')">Night</button>
-    </div>
+    <label>난이도 선택:
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+      </select>
+    </label>
+    <label>테마 선택:
+      <select id="theme">
+        <option value="classic" selected>Classic</option>
+        <option value="ocean">Ocean</option>
+        <option value="desert">Desert</option>
+        <option value="night">Night</option>
+      </select>
+    </label>
     <button class="btn" onclick="startGame()">게임 시작하기</button>
   </div>
 
@@ -105,19 +107,11 @@
     const startScreen = document.getElementById("start-screen");
     const title = document.getElementById("title");
     const info = document.getElementById("game-info");
+    const difficultySelect = document.getElementById("difficulty");
+    const themeSelect = document.getElementById("theme");
 
     const box = 20;
     let snake, direction, food, score, game, speed, highScore;
-    let difficulty = "normal";
-    let theme = "classic";
-
-    function setDifficulty(level) {
-      difficulty = level;
-    }
-
-    function setTheme(selectedTheme) {
-      theme = selectedTheme;
-    }
 
     function applyTheme(theme) {
       const themes = {
@@ -129,7 +123,7 @@
       document.body.style.backgroundColor = themes[theme];
     }
 
-    function resetGame() {
+    function resetGame(difficulty) {
       snake = [{ x: 200, y: 200 }];
       direction = "RIGHT";
       food = generateFood();
@@ -146,12 +140,14 @@
     }
 
     function startGame() {
+      const difficulty = difficultySelect.value;
+      const theme = themeSelect.value;
       applyTheme(theme);
       startScreen.style.display = "none";
       title.style.display = "block";
       info.style.display = "block";
-      canvas.style.display = "block"; // 게임 시작 시 캔버스 표시
-      resetGame();
+      canvas.style.display = "block";
+      resetGame(difficulty);
       clearInterval(game);
       game = setInterval(draw, speed);
     }
