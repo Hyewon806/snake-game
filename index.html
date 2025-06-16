@@ -15,10 +15,9 @@
       margin: 0;
       font-family: "Arial", sans-serif;
     }
-    h1 {
-      font-size: 2.2rem;
+    h1, h2 {
       color: #4b0082;
-      margin-bottom: 0.2em;
+      margin: 0.5em 0;
     }
     label, select {
       font-size: 1rem;
@@ -41,7 +40,7 @@
     }
     #start-screen {
       position: absolute;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.95);
       width: 100%;
       height: 100%;
       top: 0;
@@ -52,37 +51,44 @@
       align-items: center;
       z-index: 10;
     }
-    #start-screen button {
+    .btn {
       background: #4b0082;
       color: white;
       border: none;
       border-radius: 10px;
-      font-size: 1.2rem;
-      padding: 10px 20px;
+      font-size: 1rem;
+      padding: 8px 16px;
+      margin: 10px;
       cursor: pointer;
+    }
+    #game-info {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #333;
     }
   </style>
 </head>
 <body>
   <div id="start-screen">
     <h1>🐍 귀염뱀 게임</h1>
-    <label>난이도:
-      <select id="difficulty">
-        <option value="easy">Easy</option>
-        <option value="normal" selected>Normal</option>
-        <option value="hard">Hard</option>
-      </select>
-    </label>
-    <label>테마:
-      <select id="theme">
-        <option value="classic" selected>Classic</option>
-        <option value="ocean">Ocean</option>
-        <option value="desert">Desert</option>
-        <option value="night">Night</option>
-      </select>
-    </label>
-    <button onclick="startGame()">게임 시작하기</button>
+    <label>난이도 선택:</label>
+    <div>
+      <button class="btn" onclick="setDifficulty('easy')">Easy</button>
+      <button class="btn" onclick="setDifficulty('normal')">Normal</button>
+      <button class="btn" onclick="setDifficulty('hard')">Hard</button>
+    </div>
+    <label>테마 선택:</label>
+    <div>
+      <button class="btn" onclick="setTheme('classic')">Classic</button>
+      <button class="btn" onclick="setTheme('ocean')">Ocean</button>
+      <button class="btn" onclick="setTheme('desert')">Desert</button>
+      <button class="btn" onclick="setTheme('night')">Night</button>
+    </div>
+    <button class="btn" onclick="startGame()">게임 시작하기</button>
   </div>
+
+  <h2 id="title" style="display:none">🐍 귀염뱀 게임 - 플레이 중</h2>
+  <p id="game-info" style="display:none">🍎 먹이: 빨간색 | 🧱 장애물: 회색 | 🐍 뱀: 보라색</p>
 
   <canvas id="game" width="400" height="400"></canvas>
   <div id="score-board">점수: <span id="score">0</span> / 최고점수: <span id="high-score">0</span></div>
@@ -93,11 +99,21 @@
     const scoreDisplay = document.getElementById("score");
     const highScoreDisplay = document.getElementById("high-score");
     const startScreen = document.getElementById("start-screen");
-    const difficultySelect = document.getElementById("difficulty");
-    const themeSelect = document.getElementById("theme");
+    const title = document.getElementById("title");
+    const info = document.getElementById("game-info");
 
     const box = 20;
     let snake, direction, food, score, game, speed, highScore;
+    let difficulty = "normal";
+    let theme = "classic";
+
+    function setDifficulty(level) {
+      difficulty = level;
+    }
+
+    function setTheme(selectedTheme) {
+      theme = selectedTheme;
+    }
 
     function applyTheme(theme) {
       const themes = {
@@ -109,7 +125,7 @@
       document.body.style.backgroundColor = themes[theme];
     }
 
-    function resetGame(difficulty) {
+    function resetGame() {
       snake = [{ x: 200, y: 200 }];
       direction = "RIGHT";
       food = generateFood();
@@ -126,11 +142,11 @@
     }
 
     function startGame() {
-      const difficulty = difficultySelect.value;
-      const theme = themeSelect.value;
       applyTheme(theme);
       startScreen.style.display = "none";
-      resetGame(difficulty);
+      title.style.display = "block";
+      info.style.display = "block";
+      resetGame();
       clearInterval(game);
       game = setInterval(draw, speed);
     }
