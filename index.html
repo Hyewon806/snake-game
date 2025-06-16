@@ -232,9 +232,14 @@
     }
 
     function restartGame() {
-      gameOverScreen.style.display = "none";
-      startGame();
-    }
+  gameOverScreen.style.display = "none";
+  startScreen.style.display = "flex";
+  canvas.style.display = "none";
+  title.style.display = "none";
+  info.style.display = "none";
+  levelIndicator.style.display = "none";
+  document.getElementById("mobile-controls").style.display = "none";
+}
 
     function setDirection(dir) {
       if (dir === 'UP' && direction !== 'DOWN') direction = 'UP';
