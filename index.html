@@ -37,9 +37,12 @@
       background-color: #f5f5f5;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
       margin-top: 10px;
+      position: relative;
+      z-index: 0;
+      pointer-events: none; /* 시작 전에는 클릭 불가 */
     }
     #start-screen {
-      position: absolute;
+      position: fixed;
       background: rgba(255,255,255,0.95);
       width: 100%;
       height: 100%;
@@ -49,7 +52,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 10;
+      z-index: 9999;
     }
     .btn {
       background: #4b0082;
@@ -146,6 +149,7 @@
       startScreen.style.display = "none";
       title.style.display = "block";
       info.style.display = "block";
+      canvas.style.pointerEvents = "auto"; // 게임 시작 시 canvas 클릭 허용
       resetGame();
       clearInterval(game);
       game = setInterval(draw, speed);
