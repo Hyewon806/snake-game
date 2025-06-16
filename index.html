@@ -112,6 +112,7 @@
 
     const box = 20;
     let snake, direction, food, score, game, speed, highScore;
+    let obstacles = [];
 
     function applyTheme(theme) {
       const themes = {
@@ -130,9 +131,17 @@
       score = 0;
       speed = difficulty === "easy" ? 200 : difficulty === "normal" ? 150 : 100;
       scoreDisplay.textContent = score;
+      obstacles = [];
     }
 
     function generateFood() {
+      return {
+        x: Math.floor(Math.random() * 20) * box,
+        y: Math.floor(Math.random() * 20) * box
+      };
+    }
+
+    function generateObstacle() {
       return {
         x: Math.floor(Math.random() * 20) * box,
         y: Math.floor(Math.random() * 20) * box
@@ -163,6 +172,11 @@
       ctx.fillStyle = "#dc143c";
       ctx.fillRect(food.x, food.y, box, box);
 
+      ctx.fillStyle = "gray";
+      obstacles.forEach(obs => {
+        ctx.fillRect(obs.x, obs.y, box, box);
+      });
+
       let headX = snake[0].x;
       let headY = snake[0].y;
 
@@ -175,6 +189,15 @@
         food = generateFood();
         score++;
         scoreDisplay.textContent = score;
+
+        // 레벨업: 3점마다 속도 증가, 장애물 추가
+        if (score % 3 === 0) {
+          speed = Math.max(50, speed - 10);
+          clearInterval(game);
+          game = setInterval(draw, speed);
+          obstacles.push(generateObstacle());
+        }
+
         if (score > highScore) {
           highScore = score;
           localStorage.setItem("highScore", highScore);
@@ -189,7 +212,8 @@
       if (
         headX < 0 || headX >= canvas.width ||
         headY < 0 || headY >= canvas.height ||
-        snake.some(seg => seg.x === headX && seg.y === headY)
+        snake.some(seg => seg.x === headX && seg.y === headY) ||
+        obstacles.some(obs => obs.x === headX && obs.y === headY)
       ) {
         clearInterval(game);
         alert("게임 오버! 점수: " + score);
