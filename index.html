@@ -81,6 +81,25 @@
       font-size: 1rem;
       color: #006400;
     }
+    #mobile-controls {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 15px;
+    }
+    #mobile-controls button {
+      font-size: 24px;
+      margin: 4px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      background: #ffb6c1;
+      border: none;
+    }
+    @media (max-width: 768px) {
+      #mobile-controls {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body>
@@ -116,6 +135,15 @@
 
   <canvas id="game" width="400" height="400"></canvas>
   <div id="score-board">점수: <span id="score">0</span> / 최고점수: <span id="high-score">0</span></div>
+
+  <div id="mobile-controls">
+    <button onclick="setDirection('UP')">⬆️</button>
+    <div>
+      <button onclick="setDirection('LEFT')">⬅️</button>
+      <button onclick="setDirection('DOWN')">⬇️</button>
+      <button onclick="setDirection('RIGHT')">➡️</button>
+    </div>
+  </div>
 
   <audio id="bgm" loop>
     <source src="bgm.mp3" type="audio/mpeg">
@@ -205,98 +233,105 @@
       startGame();
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? "#4b0082" : "#9370db";
-        ctx.fillRect(snake[i].x, snake[i].y, box, box);
-      }
-
-      ctx.fillStyle = "#dc143c";
-      foods.forEach(food => {
-        ctx.fillRect(food.x, food.y, box, box);
-      });
-
-      ctx.fillStyle = "gray";
-      obstacles.forEach(obs => {
-        ctx.fillRect(obs.x, obs.y, box, box);
-      });
-
-      let headX = snake[0].x;
-      let headY = snake[0].y;
-
-      if (direction === "LEFT") headX -= box;
-      if (direction === "RIGHT") headX += box;
-      if (direction === "UP") headY -= box;
-      if (direction === "DOWN") headY += box;
-
-      let ate = false;
-      foods = foods.filter(food => {
-        if (headX === food.x && headY === food.y) {
-          ate = true;
-          return false;
-        }
-        return true;
-      });
-
-      if (ate) {
-        eatSound.play();
-        foods.push(generateFood());
-        score++;
-        scoreDisplay.textContent = score;
-
-        if (score % 3 === 0) {
-          level++;
-          levelDisplay.textContent = level;
-          speed = Math.max(50, speed - 10);
-          clearInterval(game);
-          game = setInterval(draw, speed);
-          obstacles.push(generateObstacle());
-          foods.push(generateFood());
-        }
-
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem("highScore", highScore);
-          highScoreDisplay.textContent = highScore;
-        }
-      } else {
-        snake.pop();
-      }
-
-      const newHead = { x: headX, y: headY };
-
-      if (
-        headX < 0 || headX >= canvas.width ||
-        headY < 0 || headY >= canvas.height ||
-        snake.some(seg => seg.x === headX && seg.y === headY) ||
-        obstacles.some(obs => obs.x === headX && obs.y === headY)
-      ) {
-        dieSound.play();
-        clearInterval(game);
-        finalScoreDisplay.textContent = score;
-        gameOverScreen.style.display = "flex";
-        canvas.style.display = "none";
-        title.style.display = "none";
-        info.style.display = "none";
-        levelIndicator.style.display = "none";
-        return;
-      }
-
-      snake.unshift(newHead);
+    function setDirection(dir) {
+      if (dir === 'UP' && direction !== 'DOWN') direction = 'UP';
+      else if (dir === 'DOWN' && direction !== 'UP') direction = 'DOWN';
+      else if (dir === 'LEFT' && direction !== 'RIGHT') direction = 'LEFT';
+      else if (dir === 'RIGHT' && direction !== 'LEFT') direction = 'RIGHT';
     }
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-      else if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-      else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-      else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
-      else if (e.key === "Escape") location.reload();
-    });
+    function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    highScore = localStorage.getItem("highScore") || 0;
-    highScoreDisplay.textContent = highScore;
+  for (let i = 0; i < snake.length; i++) {
+    ctx.fillStyle = i === 0 ? "#4b0082" : "#9370db";
+    ctx.fillRect(snake[i].x, snake[i].y, box, box);
+  }
+
+  ctx.fillStyle = "#dc143c";
+  foods.forEach(food => {
+    ctx.fillRect(food.x, food.y, box, box);
+  });
+
+  ctx.fillStyle = "gray";
+  obstacles.forEach(obs => {
+    ctx.fillRect(obs.x, obs.y, box, box);
+  });
+
+  let headX = snake[0].x;
+  let headY = snake[0].y;
+
+  if (direction === "LEFT") headX -= box;
+  if (direction === "RIGHT") headX += box;
+  if (direction === "UP") headY -= box;
+  if (direction === "DOWN") headY += box;
+
+  let ate = false;
+  foods = foods.filter(food => {
+    if (headX === food.x && headY === food.y) {
+      ate = true;
+      return false;
+    }
+    return true;
+  });
+
+  if (ate) {
+    eatSound.play();
+    foods.push(generateFood());
+    score++;
+    scoreDisplay.textContent = score;
+
+    if (score % 3 === 0) {
+      level++;
+      levelDisplay.textContent = level;
+      speed = Math.max(50, speed - 10);
+      clearInterval(game);
+      game = setInterval(draw, speed);
+      obstacles.push(generateObstacle());
+      foods.push(generateFood());
+    }
+
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem("highScore", highScore);
+      highScoreDisplay.textContent = highScore;
+    }
+  } else {
+    snake.pop();
+  }
+
+  const newHead = { x: headX, y: headY };
+
+  if (
+    headX < 0 || headX >= canvas.width ||
+    headY < 0 || headY >= canvas.height ||
+    snake.some(seg => seg.x === headX && seg.y === headY) ||
+    obstacles.some(obs => obs.x === headX && obs.y === headY)
+  ) {
+    dieSound.play();
+    clearInterval(game);
+    finalScoreDisplay.textContent = score;
+    gameOverScreen.style.display = "flex";
+    canvas.style.display = "none";
+    title.style.display = "none";
+    info.style.display = "none";
+    levelIndicator.style.display = "none";
+    return;
+  }
+
+  snake.unshift(newHead);
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+  else if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+  else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+  else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+  else if (e.key === "Escape") location.reload();
+});
+
+highScore = localStorage.getItem("highScore") || 0;
+highScoreDisplay.textContent = highScore;
   </script>
 </body>
 </html>
