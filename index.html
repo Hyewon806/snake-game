@@ -20,10 +20,9 @@
       color: #4b0082;
       margin-bottom: 0.2em;
     }
-    p {
-      margin-top: 0;
-      margin-bottom: 1em;
-      color: #222;
+    label, select {
+      font-size: 1rem;
+      margin: 5px;
     }
     #score-board {
       background: #fff0f5;
@@ -67,58 +66,73 @@
 <body>
   <div id="start-screen">
     <h1>🐍 귀염뱀 게임</h1>
-    <p>방향키로 조작해서 음식을 먹여줘! 🍎</p>
+    <label>난이도:
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="normal" selected>Normal</option>
+        <option value="hard">Hard</option>
+      </select>
+    </label>
+    <label>테마:
+      <select id="theme">
+        <option value="classic" selected>Classic</option>
+        <option value="ocean">Ocean</option>
+        <option value="desert">Desert</option>
+        <option value="night">Night</option>
+      </select>
+    </label>
     <button onclick="startGame()">게임 시작하기</button>
   </div>
 
   <canvas id="game" width="400" height="400"></canvas>
-  <div id="score-board">점수: <span id="score">0</span></div>
+  <div id="score-board">점수: <span id="score">0</span> / 최고점수: <span id="high-score">0</span></div>
 
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const scoreDisplay = document.getElementById("score");
+    const highScoreDisplay = document.getElementById("high-score");
     const startScreen = document.getElementById("start-screen");
+    const difficultySelect = document.getElementById("difficulty");
+    const themeSelect = document.getElementById("theme");
 
     const box = 20;
-    let snake, direction, food, score, game, speed, level, foods, obstacles;
+    let snake, direction, food, score, game, speed, highScore;
 
-    function resetGame() {
+    function applyTheme(theme) {
+      const themes = {
+        classic: "#fef9ff",
+        ocean: "#e0f7fa",
+        desert: "#fff8dc",
+        night: "#1e1e2f"
+      };
+      document.body.style.backgroundColor = themes[theme];
+    }
+
+    function resetGame(difficulty) {
       snake = [{ x: 200, y: 200 }];
       direction = "RIGHT";
+      food = generateFood();
       score = 0;
-      speed = 150;
-      level = 1;
-      foods = generateFoods(level);
-      obstacles = generateObstacles(level);
+      speed = difficulty === "easy" ? 200 : difficulty === "normal" ? 150 : 100;
       scoreDisplay.textContent = score;
     }
 
+    function generateFood() {
+      return {
+        x: Math.floor(Math.random() * 20) * box,
+        y: Math.floor(Math.random() * 20) * box
+      };
+    }
+
     function startGame() {
+      const difficulty = difficultySelect.value;
+      const theme = themeSelect.value;
+      applyTheme(theme);
       startScreen.style.display = "none";
-      resetGame();
+      resetGame(difficulty);
+      clearInterval(game);
       game = setInterval(draw, speed);
-    }
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-      else if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-      else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-      else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
-    });
-
-    function generateFoods(count) {
-      return Array.from({ length: count }, () => ({
-        x: Math.floor(Math.random() * 20) * box,
-        y: Math.floor(Math.random() * 20) * box
-      }));
-    }
-
-    function generateObstacles(count) {
-      return Array.from({ length: count }, () => ({
-        x: Math.floor(Math.random() * 20) * box,
-        y: Math.floor(Math.random() * 20) * box
-      }));
     }
 
     function draw() {
@@ -130,10 +144,7 @@
       }
 
       ctx.fillStyle = "#dc143c";
-      foods.forEach(f => ctx.fillRect(f.x, f.y, box, box));
-
-      ctx.fillStyle = "#2f4f4f";
-      obstacles.forEach(o => ctx.fillRect(o.x, o.y, box, box));
+      ctx.fillRect(food.x, food.y, box, box);
 
       let headX = snake[0].x;
       let headY = snake[0].y;
@@ -143,27 +154,14 @@
       if (direction === "UP") headY -= box;
       if (direction === "DOWN") headY += box;
 
-      let ateFood = false;
-      foods = foods.filter(f => {
-        if (f.x === headX && f.y === headY) {
-          ateFood = true;
-          return false;
-        }
-        return true;
-      });
-
-      if (ateFood) {
+      if (headX === food.x && headY === food.y) {
+        food = generateFood();
         score++;
         scoreDisplay.textContent = score;
-        if (score % 5 === 0) {
-          clearInterval(game);
-          level++;
-          foods = generateFoods(level);
-          obstacles = generateObstacles(level);
-          speed = Math.max(60, speed - 10);
-          game = setInterval(draw, speed);
-        } else {
-          foods.push(...generateFoods(1));
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem("highScore", highScore);
+          highScoreDisplay.textContent = highScore;
         }
       } else {
         snake.pop();
@@ -174,8 +172,7 @@
       if (
         headX < 0 || headX >= canvas.width ||
         headY < 0 || headY >= canvas.height ||
-        snake.some(seg => seg.x === headX && seg.y === headY) ||
-        obstacles.some(o => o.x === headX && o.y === headY)
+        snake.some(seg => seg.x === headX && seg.y === headY)
       ) {
         clearInterval(game);
         alert("게임 오버! 점수: " + score);
@@ -184,6 +181,18 @@
 
       snake.unshift(newHead);
     }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      else if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+      else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+      else if (e.key === "Escape") location.reload();
+    });
+
+    // Load high score on load
+    highScore = localStorage.getItem("highScore") || 0;
+    highScoreDisplay.textContent = highScore;
   </script>
 </body>
 </html>
